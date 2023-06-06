@@ -6,16 +6,25 @@
 </head>
 <body>
     <x-app-layout>
+        <x-slot name="header">
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+                {{ __('Calls') }}
+            </h2>
+        </x-slot>
         <div class="container bg-gray-400 rounded">
-           
+            @if (session()->has('success'))
+                <div class="alert alert-success" id="alert">
+                    {{session()->get('success')}}
+                <button style="float:right" type="button" class="close" data-dismiss="alert" >x</button>
+                </div>
+            @elseif (session()->has('error'))
+                <div class="alert alert-danger" id="alert">
+                    {{session()->get('error')}}
+                <button style="float:right" type="button" class="close" data-dismiss="alert" >x</button>
+                </div>
+            @endif
             <div class="row mt-3">
                 <div class="d-flex justify-content-center col-md-12">
-                    @if (session()->has('sucess'))
-                        <div class="alert alert-success" id="alert">
-                            {{session()->get('success')}}
-                        <button style="float:right" type="button" class="close" data-dismiss="alert" >x</button>
-                        </div>
-                    @endif
                     <form style="width:400px" action="{{url('Calls/upload')}}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="center md-3 pt-4">
@@ -31,39 +40,16 @@
             </div>
         </div>
         <div class="container mt-4 bg-gray-400 rounded"  id="calls">
-            <div class="row p-2">
-                <div class="center">
+            <div class="row p-2 d-flex">
+                <div class="col-md-4">
                     <h1>USERS</h1>
                 </div>
-            </div>
-            
-            <form action="{{url('calls/search')}}" method="POST" enctype="multipart/form-data">
-                @csrf
-                 <div class="row d-flex justify-content-center">
-                    <div class="col-md-3 p-1">
-                        <input type="text" class="form-control rounded-pill" value="{{old('name')}}" name="name" placeholder="Enter Name">
-                        @error('name')
-                        <span style="color: rgb(175, 16, 16)">{{$message}}</span> 
-                        @enderror
-                    </div>
-                    <div class="col-md-3 p-1">
-                        <input type="text" class="form-control rounded-pill" value="{{old('phone')}}" name="phone"  placeholder="Enter Phone">
-                        @error('phone')
-                        <span style="color: rgb(175, 16, 16)">{{$message}}</span> 
-                        @enderror
-                    </div>
-                    <div class="col-md-3 p-1">
-                        <input type="date" class="form-control rounded-pill" value="{{old('date')}}" name="date">
-                        @error('date')
-                        <span style="color: rgb(175, 16, 16)">{{$message}}</span> 
-                        @enderror
-                        <button type="submit" class="btn btn-primary mt-2 float-right">Search</button>
-
-                    </div>
-                    
+                <div class="col-md-4">
                 </div>
-            </form>
-            
+                <div class="col-md-4 float:right">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search...">          
+                </div>
+            </div>  
             <div class="row" id="allcalls">
                 <div class="d-flex p-3 justify-content-center align-items-center">
                     <table class="table table-bordered table-responsive">
@@ -76,86 +62,193 @@
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="tableBody">
                             @if(!empty($data))
                                 @php
                                     $i=1;
                                 @endphp
-                                @foreach ($data as $call )
-                                <tr>
-                                    <td>{{$i++}}</td>
-                                    <td>{{$call->name}}</td>
-                                    <td>{{$call->phone}}</td>
-                                    <td>{{$call->created_at}}</td>
-                                    <td> <button href="" class="btn btn-success" onclick="container()">Call</button> </td>
-                                </tr>
+                                @foreach ($data as $call)
+                                    <tr>
+                                        <td>{{$i++}}</td>
+                                        <td>{{$call->first_name}} {{$call->last_name}}</td>
+                                        <td>{{$call->phone}}</td>
+                                        <td>{{$call->created_at}}</td>
+                                        <td> <button class="btn btn-success call-btn" data-toggle="modal" data-target="#callDetailsModal"
+                                            data-firstname="{{ $call->first_name }}" data-phone="{{ $call->phone }}" data-email="{{ $call->email }}">
+                                        Call
+                                    </button>
+                                    
+                                        </td>
+                                    </tr>
                                 @endforeach
+                                <tr id="responseRow" style="display: none;">
+                                    <td colspan="5" class="text-center" style="color:brown">No data is available for the search</td>
+                                </tr>
                             @else
-                            <tr>
-                                <td colspan="5">No data Available</td>
-                            </tr>                            
+                                <tr>
+                                    <td colspan="5" >There is no data to display</td>
+                                </tr>
                             @endif
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-        <div class="container mt-4 bg-gray-400 rounded" id="question" style="display: none">
-            <div class="row">
-                <h4>Call Information</h4>
-                <form action="">
-                    <div class="form-control">
-                        <label>
-                          <input type="radio" name="status" value="reachable" id="reachable" onclick="showQuestion('reachable')"> Reachable
-                        </label>
-                        <br>
-                        <label>
-                          <input type="radio" name="status" value="unreachable" id="unreachable" onclick="showQuestion('unreachable')"> Unreachable
-                        </label>
-                      </div>
-                      
-                      <div id="questionContainer">
-                        <div id="questionReachable" style="display: none">
-                          <label>How are you?</label>
-                          <input type="text" name="howAreYou">
-                        </div>
-                        <div id="questionUnreachable" style="display: none">
-                          <label>Why not reachable?</label><br/>
-                          <label>
-                            <input type="radio" name="reason" value="network"> Poor Network Connection
-                          </label>
-                          <br>
-                          <label>
-                            <input type="radio" name="reason" value="busy"> Took too long to respond
-                          </label><br/>
-                          <label>
-                            <input type="radio" name="reason" value="hanged"> Hanged up
-                          </label>
-                        </div>
-                      </div>                      
-                </form>
+        
+        <div class="modal fade" id="callDetailsModal" tabindex="-1" role="dialog" aria-labelledby="callDetailsModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="callDetailsModalLabel">Call Information</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="closeCallDetailsModal">
+                            <span aria-hidden="true">&times;</span>
+                        </button>                        
+                    </div>
+                    <div class="modal-body">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Phone</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td id="modalFirstName"></td>
+                                    <td id="modalPhone"></td>
+                                    <td id="modalEmail"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <form action="{{route('callupdate')}}" method="POST">
+                            @csrf
+                            <input type="hidden" id="hiddenPhone" name="hiddenPhone">
+                            <div class="form-group">
+                                <label for="status">Customer Status</label><br/>
+                                <input type="radio" class="form-control" id="status" name="status" value=1 onclick="showQuestion('reachable')"> Reachable <br/>
+                                <input type="radio" class="form-control" id="status" name="status" value=2 onclick="showQuestion('unreachable')"> Unreachable
+                            </div>
+                            <div id="reachable" style="display: none;">
+                                <div class="form-group">
+                                    <label for="howAreYou">How are you?</label>
+                                    <input type="text" class="form-control" id="howAreYou" name="howAreYou">
+                                </div>
+                            </div>
+                            <div id="unreachable" style="display: none;">
+                                <div class="form-group">
+                                    <label for="reason">Reason for being unreachable</label>
+                                    <div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="reason" id="reasonNetwork" value="network">
+                                            <label class="form-check-label" for="reasonNetwork">
+                                                Poor Network Connection
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="reason" id="reasonBusy" value="busy">
+                                            <label class="form-check-label" for="reasonBusy">
+                                                Took too long to respond
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="reason" id="reasonHanged" value="hanged">
+                                            <label class="form-check-label" for="reasonHanged">
+                                                Hanged up
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary float-right color:black">Save</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-
-    </x-app-layout>
-     
-    <script>
-        function showQuestion(option) {
-          var questionReachable = document.getElementById('questionReachable');
-          var questionUnreachable = document.getElementById('questionUnreachable');
         
-          if (option === 'reachable') {
+        
+        
+
+    </x-app-layout>        
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('tableBody').getElementsByTagName('tr');
+    const responseRow = document.getElementById('responseRow');
+
+    // Search functionality
+    searchInput.addEventListener('input', function() {
+        const searchTerm = searchInput.value.toLowerCase();
+        filterTable(searchTerm);
+    });
+
+    // Function to filter the table rows
+    function filterTable(searchTerm) {
+        let matchCount = 0;
+
+        for (let i = 0; i < tableBody.length - 1; i++) {
+            const rowData = tableBody[i].getElementsByTagName('td');
+            let foundMatch = false;
+
+            for (let j = 1; j < rowData.length - 1; j++) {
+                const cellData = rowData[j].textContent.toLowerCase();
+
+                if (cellData.includes(searchTerm)) {
+                    foundMatch = true;
+                    break;
+                }
+            }
+
+            if (foundMatch) {
+                tableBody[i].style.display = 'table-row';
+                matchCount++;
+            } else {
+                tableBody[i].style.display = 'none';
+            }
+        }
+
+        if (matchCount === 0) {
+            responseRow.style.display = 'table-row';
+        } else {
+            responseRow.style.display = 'none';
+        }
+    }
+    $(document).on('click', '.call-btn', function () {
+        // Get the call details from the clicked button's data attributes
+        const firstName = $(this).data('firstname');
+        const phone = $(this).data('phone');
+        const email = $(this).data('email');
+
+        // Set the call details in the modal
+        $('#modalFirstName').text(firstName);
+        $('#modalPhone').text(phone);
+        $('#modalEmail').text(email);
+
+         // Set the hidden phone value
+        $('#hiddenPhone').val(phone);
+
+        // Show the modal
+        $('#callDetailsModal').modal('show');
+    });
+    
+    //close the card
+    $(document).on('click', '#closeCallDetailsModal', function () {
+        $('#callDetailsModal').modal('hide');
+    });
+
+
+    function showQuestion(status) {
+        var questionReachable = document.getElementById('reachable');
+        var questionUnreachable = document.getElementById('unreachable');
+
+        if (status === 'reachable') {
             questionReachable.style.display = 'block';
             questionUnreachable.style.display = 'none';
-          } else if (option === 'unreachable') {
+        } else if (status === 'unreachable') {
             questionReachable.style.display = 'none';
             questionUnreachable.style.display = 'block';
-          }
         }
-        function container(){
-            var allcalls=document.getElementById('allcalls');
-            allcalls.style.display='none';
-            document.getElementById('question').style.display = 'block';
-        }
-        </script>
+    }
+</script>
+
 </body>

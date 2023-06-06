@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CallsController;
+use App\Http\Controllers\CustomerController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,10 +28,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('calls/calls', [CallsController::class, 'index'])->name('makecall');
+    Route::get('calls/calls', [CustomerController::class, 'index'])->name('makecall');
     Route::post('calls/search', [CallsController::class, 'search']);
     Route::post('Calls/upload', [CallsController::class, 'import'])->name('upload');
-    Route::post('call/info/{id}', [CallsController::class, 'info'])->name('info');
+    Route::post('calls/callupdate', [CallsController::class, 'callupdate'])->name('callupdate');
 
 });
 

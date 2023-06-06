@@ -4,30 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Calls;
+use App\Models\Customers;
+
 
 class CallsController extends Controller
 {
-    public function index(){
-        $data= Calls::orderBy('created_at', 'desc')->get();
-        return view('calls.calls', compact('data'));
-    }
-
-    public function search(Request $request){
-        $result= $request->validate([
-            'name' => 'alpha',
-            'phone' => 'numeric',
-            'date' => 'date|before_or_equal:today'
-        ]);
-        $name= $request->name;
-        $phone= $request->phone;
-        $date= $request->date;
-        $data= Calls::where('name', '=', $name)
-                    ->orWhere('phone', '=', $phone)
-                    ->orWhereDate('created_at', '=', $date)
-                        ->get();
-        return view('calls.calls', compact('data'));
-    }
-
     function import(Request $request){
         
         $this->validate($request, [
@@ -52,8 +33,48 @@ class CallsController extends Controller
         }
         return back()->with('success', 'data inserted successfully');
     }
-    public function info($id){
-        $data= Calls::where('id','=',$id)->get();
-        return view('calls.info', compact('data'));
+    public function callupdate(Request $request){
+
+        // $info=$request->validate([
+
+        // ])
+        $phone=$request->hiddenPhone;
+        $reason=$request->reason;
+        $status=$request->status;
+        $greeting=$request->howAreYou;
+        $call= Calls::where('phone','=', $phone)->first();
+        if($call){
+            if($status==1){
+                $data= Calls::where('phone','=',$phone)->update([
+                    'status'=> $status,
+                    'greeting'=> $greeting,
+                    'reason'=>null
+                ]);
+            }
+            elseif($status==2){
+                $data= Calls::where('phone','=',$phone)->update([
+                    'status'=> $status,
+                    'reason'=> $reason,
+                    'greeting'=>null
+                ]);
+            }
+            if($data){
+                return back()->with('success','Call updated successfully');
+            }else{
+                return back()->with('error','Failed to update');
+            }
+        }else{
+            $data=Calls::create([
+                'phone'=>$phone,
+                'status'=>$status,
+                'reason'=>$reason,
+                'greeting'=>$greeting
+            ]);
+            if($data){
+                return back()->with('success','Call record created successfully');
+            }else{
+                return back()->with('error','Failed to create call record');
+            }
+        }
     }
 }
