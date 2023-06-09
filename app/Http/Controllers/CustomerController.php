@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\DB;
 class CustomerController extends Controller
 {
     public function index(){
-        $data= Customers::orderBy('created_at', 'desc')->get();
+        $data= Customers::paginate(10);
+       // dd($data);
         return view('calls.customers', compact('data'));
     }
 

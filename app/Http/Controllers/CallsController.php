@@ -74,7 +74,7 @@ class CallsController extends Controller
             $query->whereBetween('updated_at', [$froDate, $toDate]);
         }
     
-        $data = $query->get();
+        $data = $query->paginate(10);
     
         return view('calls.customers', compact('data'));
     }

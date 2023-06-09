@@ -50,7 +50,9 @@
                 <div class="col-md-4">
                     <h1>USERS</h1>
                 </div>
+                <div class="col-md-4"></div>
                 <div class="col-md-4">
+                    <a href="{{route('customerdownload')}}" class="btn btn-primary">Download</a>
                 </div>
             </div>
             <form action="{{route('callsearch')}}" method="POST" enctype="multipart/form-data">
@@ -108,17 +110,17 @@
                                         </td>
                                     </tr>
                                 @endforeach
-                                <tr id="responseRow" style="display: none;">
-                                    <td colspan="5" class="text-center" style="color:brown">No data is available for the search</td>
-                                </tr>
                             @else
-                                <tr>
-                                    <td colspan="5" >There is no data to display</td>
-                                </tr>
+                            <tr id="responseRow" style="">
+                                <td colspan="5" class="text-center" style="color:brown">No data is available for the search</td>
+                            </tr>
                             @endif
                         </tbody>
                     </table>
                 </div>
+            </div>
+            <div class="justify-content-center">
+                {{ $data->links() }}
             </div>
         </div>
         
