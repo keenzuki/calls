@@ -23,14 +23,20 @@
                 <button style="float:right" type="button" class="close" data-dismiss="alert" >x</button>
                 </div>
             @endif
+            @if (session()->has('successful-import'))
+            <div class="alert alert-success" id="alert">
+                {{session()->get('successful-import')}}
+            <button style="float:right" type="button" class="close" data-dismiss="alert" >x</button>
+            </div>
+            @endif
             <div class="row mt-3">
                 <div class="d-flex justify-content-center col-md-12">
-                    <form style="width:400px" action="{{url('Calls/upload')}}" method="POST" enctype="multipart/form-data">
+                    <form style="width:400px" action="{{route('customersupload')}}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="center md-3 pt-4">
                             <label class="form-label">Choose your file</label>
-                                <input type="file" class="form-control" name="select_file">
-                                @error('select_file')
+                                <input type="file" class="form-control" name="myfile">
+                                @error('myfile')
                                 <span style="color: rgb(175, 16, 16)">{{$message}}</span>
                                 @enderror
                         </div>
@@ -46,10 +52,31 @@
                 </div>
                 <div class="col-md-4">
                 </div>
-                <div class="col-md-4 float:right">
-                    <input type="text" id="searchInput" class="form-control" placeholder="Search...">          
+            </div>
+            <form action="{{route('callsearch')}}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="">Name</label>
+                        <input type="text" class="form-control" name="name">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="">Phone</label>
+                        <input type="text" class="form-control" name="phone">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="">From Date</label>
+                        <input type="date" class="form-control" name="froDate">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="">To Date</label>
+                        <input type="date" class="form-control" name="toDate">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-success">Search</button>
+                    </div>
                 </div>
-            </div>  
+            </form>
             <div class="row" id="allcalls">
                 <div class="d-flex p-3 justify-content-center align-items-center">
                     <table class="table table-bordered table-responsive">
@@ -166,53 +193,8 @@
                 </div>
             </div>
         </div>
-        
-        
-        
-
     </x-app-layout>        
 <script>
-    const searchInput = document.getElementById('searchInput');
-    const tableBody = document.getElementById('tableBody').getElementsByTagName('tr');
-    const responseRow = document.getElementById('responseRow');
-
-    // Search functionality
-    searchInput.addEventListener('input', function() {
-        const searchTerm = searchInput.value.toLowerCase();
-        filterTable(searchTerm);
-    });
-
-    // Function to filter the table rows
-    function filterTable(searchTerm) {
-        let matchCount = 0;
-
-        for (let i = 0; i < tableBody.length - 1; i++) {
-            const rowData = tableBody[i].getElementsByTagName('td');
-            let foundMatch = false;
-
-            for (let j = 1; j < rowData.length - 1; j++) {
-                const cellData = rowData[j].textContent.toLowerCase();
-
-                if (cellData.includes(searchTerm)) {
-                    foundMatch = true;
-                    break;
-                }
-            }
-
-            if (foundMatch) {
-                tableBody[i].style.display = 'table-row';
-                matchCount++;
-            } else {
-                tableBody[i].style.display = 'none';
-            }
-        }
-
-        if (matchCount === 0) {
-            responseRow.style.display = 'table-row';
-        } else {
-            responseRow.style.display = 'none';
-        }
-    }
     $(document).on('click', '.call-btn', function () {
         // Get the call details from the clicked button's data attributes
         const firstName = $(this).data('firstname');

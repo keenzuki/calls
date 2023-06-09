@@ -5,6 +5,7 @@ use App\Http\Controllers\CallsController;
 use App\Http\Controllers\CustomerController;
 use Illuminate\Support\Facades\Route;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -24,15 +25,17 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('calls/testingqueries', [CustomerController::class, 'query'])->name('queries');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('calls/calls', [CustomerController::class, 'index'])->name('makecall');
-    Route::post('calls/search', [CallsController::class, 'search']);
-    Route::post('Calls/upload', [CallsController::class, 'import'])->name('upload');
+    Route::post('Calls/upload', [CustomerController::class, 'store'])->name('customersupload');
     Route::post('calls/callupdate', [CallsController::class, 'callupdate'])->name('callupdate');
-
+    Route::get('calls/download', [CustomerController::class, 'export'])->name('customerdownload');
+    Route::post('calls/search', [CallsController::class, 'search'])->name('callsearch');    
 });
 
 require __DIR__.'/auth.php';

@@ -5,39 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Calls;
 use App\Models\Customers;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\LeadImport;
+use Illuminate\Support\Facades\DB;
 
 
 class CallsController extends Controller
 {
-    function import(Request $request){
-        
-        $this->validate($request, [
-            'select_file' => 'required | mimes:xls,xlsx'
-        ]);
-        // dd($data);
-        $path=$request->file('select_file')->getRealPath();
-        $info= Excel::load($path)->get();
-
-        if($data->count()>0){
-            foreach ($info->toArray() as $key => $value) {
-                foreach($value as $row){
-                    $insert[]=array(
-                        'name' => $row['name'],
-                        'phone' => $row['phone']
-                    );
-                }
-            }
-            if(!empty($insert)){
-                Calls::table('calls')->insert($data);
-            }
-        }
-        return back()->with('success', 'data inserted successfully');
-    }
     public function callupdate(Request $request){
-
-        // $info=$request->validate([
-
-        // ])
         $phone=$request->hiddenPhone;
         $reason=$request->reason;
         $status=$request->status;
@@ -59,9 +34,9 @@ class CallsController extends Controller
                 ]);
             }
             if($data){
-                return back()->with('success','Call updated successfully');
+                return redirect()->route('makecall')->with('success','Call updated successfully');
             }else{
-                return back()->with('error','Failed to update');
+                return redirect()->route('makecall')->with('error','Failed to update');
             }
         }else{
             $data=Calls::create([
@@ -71,10 +46,38 @@ class CallsController extends Controller
                 'greeting'=>$greeting
             ]);
             if($data){
-                return back()->with('success','Call record created successfully');
+                return redirect()->route('makecall')->with('success','Call record created successfully');
             }else{
-                return back()->with('error','Failed to create call record');
+                return redirect()->route('makecall')->with('error','Failed to create call record');
             }
         }
     }
+
+    public function search(Request $request)
+    {
+        $name = $request->input('name');
+        $phone = $request->input('phone');
+        $toDate = $request->input('toDate');
+        $froDate = $request->input('froDate');
+    
+        $query = DB::table('customers');
+    
+        if ($name) {
+            $query->where('first_name', '=', $name);
+        }
+    
+        if ($phone) {
+            $query->where('phone', '=', $phone);
+        }
+    
+        if ($froDate && $toDate) {
+            $query->whereBetween('updated_at', [$froDate, $toDate]);
+        }
+    
+        $data = $query->get();
+    
+        return view('calls.customers', compact('data'));
+    }
+    
+
 }
